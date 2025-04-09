@@ -12,6 +12,7 @@ import re
 from time import gmtime
 from calendar import timegm
 import urllib.parse
+from os.path import exists
 from typing import Optional, Generator
 
 from gitwrapper import Git, GitError  # type: ignore
@@ -161,7 +162,11 @@ class Timestamps:
 
 
 class Autoversion:
-    def __init__(self, path: str, precache: bool = False):
+    def __init__(self,
+                 path: str,
+                 precache: bool = False,
+                 get_arch: bool = False,
+                 ):
         try:
             git = Git(path)
         except GitError as e:
@@ -171,10 +176,19 @@ class Autoversion:
         precache_commits = self.timestamps.precache_commits
 
         self.shorts = Shorts(git, precache, precache_commits=precache_commits)
-        self.describes = Describes(git, precache,
-                                   precache_commits=precache_commits)
-
+        self.describes = Describes(git,
+                                   precache,
+                                   precache_commits=precache_commits
+                                   )
+        self.get_arch = get_arch
         self.git = git
+
+    @property
+    def arch(self):
+        if exists("debian/control"):
+            return "ARCH"
+        return ""
+
 
     def _resolve_ambigious_shortcommit(
             self, short: str, timestamp: int) -> str:

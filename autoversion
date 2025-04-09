@@ -20,6 +20,10 @@ from autoversion_lib import AutoverError
 EXAMPLES = """Example usage:
     autoversion                         # print latest version (uses 'HEAD' \
 by default)
+    autoversion -a                      # print latest version and package \
+architecture (if relevant)
+                                        # e.g. "1.0 all", "2.0 any" or "3.0" \
+(no debian/control)
     autoversion 9497a28                 # print version at commit ID 9497a28
     autoversion -r v1.0                 # print commit ID of version v1.0
     autoversion $(git-rev-list --all)   # print all versions
@@ -32,7 +36,8 @@ def fatal(msg: str) -> NoReturn:
 
 
 def resolve_committish(git: autoversion.Git,
-                       committish: str) -> str:
+                       committish: str
+                       ) -> str:
     # skip expensive git-rev-parse if given a full commit id
     if re.match("[0-9a-f]{40}$", committish):
         return committish
@@ -63,17 +68,31 @@ def main():
         help=("any revision supported by git (e.g. commit ids, tags, refs,"
               "etc.) Default if not set: HEAD"),
     )
+    parser.add_argument(
+        "-g",
+        "--get-arch",
+        action="store_true",
+        default=False,
+        help="also return architecture of package (if debian/control exists in repo)",
+    )
     args = parser.parse_args()
     try:
-        auto_ver = autoversion.Autoversion(os.getcwd(), precache=args.reverse)
+        auto_ver = autoversion.Autoversion(os.getcwd(),
+                                           precache=args.reverse,
+                                           get_arch=args.get_arch
+                                           )
     except AutoverError as e:
         fatal(e)
+    arch = auto_ver.arch
     if args.reverse:
-        print(auto_ver.version2commit(args.commit))
+        version = auto_ver.version2commit(args.commit)
     else:
-        print(auto_ver.commit2version(
-            resolve_committish(auto_ver.git, args.commit)))
-
+        version = auto_ver.commit2version(
+                    resolve_committish(
+                        auto_ver.git, args.commit
+                        )
+                    )
+    print(f"{version}\t{arch}".strip())
 
 if __name__ == "__main__":
     main()
