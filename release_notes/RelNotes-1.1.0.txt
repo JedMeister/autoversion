@@ -1,0 +1,22 @@
+v1.1.0 Release Notes
+====================
+
+Packaging and code quality updates. No functional changes.
+
+* Code quality and maintenance:
+  - Updated readme.
+  - Remove legacy travis config.
+  - Linting, typing and formating updates - including:
+    - Fixed, extended and updated typing.
+    - Cleaner, clearer docstrings.
+    - Long lines wrapped.
+    - ... (lots more)
+  - Update all URLs in comments and docs to https.
+  - Update gitignore to ignore common build & cached assests.
+  
+* Packaging updates:
+  - Migrate python packaging from setup.py => pyproject.toml.
+  - Include build dependencies to support pyproject packaging.
+  - Set static datetime and exclude bytecode by default to make package leaner
+    and reproducable.
+  - Add py.typed typed code declaration file.
